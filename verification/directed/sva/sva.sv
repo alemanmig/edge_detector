@@ -1,53 +1,58 @@
-module sva #(
-    parameter int ClkFreq    = 100_000_000,
-    parameter int StableTime = 10
-)(
-    // Interface signals
+module dut_sva (
     input logic clk_i,
-    input logic rst_i,
-    input logic sw_i,
-    input logic db_level_o,
-    input logic db_tick_o,
-    input logic ff1,
-    input logic ff2,
-    input logic ff3
+    input logic rst_ni,
+    input logic sig_in_i,
+    input logic rise_pulse_o,
+    input logic fall_pulse_o
 );
 
-  localparam int CounterMax = ClkFreq * StableTime / 1_000_000;
+  default clocking cb @(posedge clk_i);
+  endclocking
 
-  property p1;
-    @(posedge clk_i) 
-    $rose(db_level_o) |-> (db_tick_o ##1 !db_tick_o);
+  // A rising transition must produce a rise pulse in the same sampled cycle.
+  property p_rise_detect;
+    $past(rst_ni) && !$past(sig_in_i) && sig_in_i |-> rise_pulse_o && !fall_pulse_o;
   endproperty
 
-  property p2;
-    @(posedge clk_i) 
-    ((db_level_o && $past(db_level_o)) |-> !db_tick_o);
+  // A falling transition must produce a fall pulse in the same sampled cycle.
+  property p_fall_detect;
+    $past(rst_ni) && $past(sig_in_i) && !sig_in_i |-> fall_pulse_o && !rise_pulse_o;
   endproperty
 
-  property p3;
-    @(posedge clk_i) 
-    $rose(ff1) |-> (##1 ff2);
-    //$rose(ff1) |=> ff2;
+  // While the input is stable, no output pulse should be generated.
+  property p_no_pulse_when_stable;
+    $past(rst_ni) && (sig_in_i == $past(sig_in_i)) |-> !rise_pulse_o && !fall_pulse_o;
   endproperty
 
-  property p4;
-    @(posedge clk_i) disable iff (rst_i)
-    $rose(sw_i) ##0 sw_i[*CounterMax+2] |-> ##1 db_level_o;
+  // A rise pulse must deassert on the next cycle.
+  property p_rise_single_cycle;
+    rise_pulse_o |=> !rise_pulse_o;
   endproperty
 
-  assert_p1: assert property (p1)
-    else $error("[SVA ERROR] %10t: db_tick_o is was not deasserted!", $realtime);
+  // A fall pulse must deassert on the next cycle.
+  property p_fall_single_cycle;
+    fall_pulse_o |=> !fall_pulse_o;
+  endproperty
 
-  assert_p2: assert property (p2)
-    else $error("[SVA ERROR] %10t: db_tick_o is asserted when it should not be!", $realtime);
+  // Rise and fall pulses are mutually exclusive.
+  property p_mutual_exclusion;
+    !(rise_pulse_o && fall_pulse_o);
+  endproperty
 
-  assert_p3: assert property (p3)
-    else $error("[SVA ERROR] %10t: ff2 did not follow ff1 as expected!", $realtime);
+  // No pulse should be asserted while reset is active.
+  property p_no_pulse_during_reset;
+    !rst_ni |-> !rise_pulse_o && !fall_pulse_o;
+  endproperty
 
-  assert_p4: assert property (p4)
-    else $error("[SVA ERROR] %10t: db_level_o did not activate as expected after sw_i was stable high!", $realtime);
+  assert_rise_detect:       assert property (disable iff (!rst_ni) p_rise_detect);
+  assert_fall_detect:       assert property (disable iff (!rst_ni) p_fall_detect);
+  assert_no_pulse_stable:   assert property (disable iff (!rst_ni) p_no_pulse_when_stable);
+  assert_rise_width:        assert property (disable iff (!rst_ni) p_rise_single_cycle);
+  assert_fall_width:        assert property (disable iff (!rst_ni) p_fall_single_cycle);
+  assert_mutual_exclusion:  assert property (disable iff (!rst_ni) p_mutual_exclusion);
+  assert_no_pulse_reset:    assert property (p_no_pulse_during_reset);
 
-  cover_p1: cover property (p1);
+  cover_rise_detect: cover property (rst_ni && $past(rst_ni) && !$past(sig_in_i) && sig_in_i);
+  cover_fall_detect: cover property (rst_ni && $past(rst_ni) && $past(sig_in_i) && !sig_in_i);
 
 endmodule
