@@ -17,14 +17,13 @@ module tb;
   test top_test (vif);
 
   // Instantiation
-edge_detector #(
-  .ResetPrev (1'b0)
-) u_edge_detector (
-  .clk_i        (clk_i),
-  .rst_ni       (rst_ni),
-  .sig_in_i     (sig_in_i),
-  .rise_pulse_o (rise_pulse_o),
-  .fall_pulse_o (fall_pulse_o)
+edge_detector
+  dut (
+  .clk_i        (vif.clk_i),
+  .rst_ni       (vif.rst_ni),
+  .sig_in_i     (vif.sig_in_i),
+  .rise_pulse_o (vif.rise_pulse_o),
+  .fall_pulse_o (vif.fall_pulse_o)
 );
 
   initial begin
