@@ -10,18 +10,18 @@ interface vif_if(
 
   import config_pkg::*;
 
-  logic rst_i;
-  logic sw_i;
-  logic db_level_o;
-  logic db_tick_o;
+  logic rst_ni;
+  logic sig_in_i;
+  logic rise_pulse_o;
+  logic fall_pulse_o;
 
-  clocking cb @(posedge clk_i);
+  /*clocking cb @(posedge clk_i);
     default input #1ns output #1ns;
-    output rst_i;
-    output sw_i;
-    input db_level_o;
-    input db_tick_o;
-  endclocking
+    logic rst_ni;
+    logic sig_in_i;
+    logic rise_pulse_o;
+    logic fall_pulse_o;
+  endclocking*/
 
 endinterface : vif_if
 
