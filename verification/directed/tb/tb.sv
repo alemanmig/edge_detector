@@ -26,6 +26,14 @@ edge_detector
   .fall_pulse_o (vif.fall_pulse_o)
 );
 
+  bind edge_detector dut_sva dut_sva (
+    .clk_i        (clk_i),
+    .rst_ni       (rst_ni),
+    .sig_in_i     (sig_in_i),
+    .rise_pulse_o (rise_pulse_o),
+    .fall_pulse_o (fall_pulse_o)
+  );
+
   initial begin
     $timeformat(-9, 1, "ns", 10);
   end
