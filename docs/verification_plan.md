@@ -1,107 +1,89 @@
 # Plan de Verificación — Edge Detector
 
-## 1. Objetivo
+## 1. Propósito
 
-Verificar que el módulo `edge_detector` detecta correctamente flancos de subida y bajada en `sig_in`, y que genera pulsos de exactamente un ciclo en `rise_pulse` y `fall_pulse`, cumpliendo restricciones de no re-disparo y comportamiento correcto en reset.
+Este documento define la estrategia de verificación para el módulo `edge_detector`. Su función es establecer qué aspectos del diseño deben verificarse, qué cobertura funcional se busca alcanzar, cuáles son las exclusiones del esfuerzo de verificación y qué criterios marcarán el cierre de la actividad.
+
+El detalle operativo de ejecución, estímulos por caso y orden de corrida se documenta por separado en [test_plan.md](/Users/miguel/Documents/alemanmig/edge_detector/docs/test_plan.md:1).
 
 ## 2. Alcance
 
-La verificación cubre:
+La verificación debe demostrar los siguientes comportamientos del DUT:
 
 - Detección de flanco de subida (`0→1`).
 - Detección de flanco de bajada (`1→0`).
-- Detección de múltiples transiciones en secuencias cortas.
-- Comportamiento sin transiciones (entrada estable).
-- Inicialización por reset con `sig_prev = 0`.
+- Generación de pulsos de exactamente un ciclo.
+- Ausencia de re-disparo mientras la entrada permanezca estable.
+- Inicialización correcta del estado previo en reset con `sig_prev = 0`.
+- No solapamiento entre `rise_pulse_o` y `fall_pulse_o`.
 
-No cubre sincronización CDC; se asume `sig_in` estable en dominio de `clk_i`.
+## 3. Exclusiones
 
-## 3. Especificación funcional bajo prueba
+Los siguientes aspectos quedan fuera del alcance de esta verificación:
 
-- Entrada: `sig_in` (1 bit), señal a monitorear.
-- Salidas:
-  - `rise_pulse` (1 bit): pulso alto de un ciclo en flanco de subida.
-  - `fall_pulse` (1 bit): pulso alto de un ciclo en flanco de bajada.
-- Registro interno:
-  - `sig_prev`: almacena el valor previo de `sig_in` y se actualiza cada ciclo.
-- Condiciones de detección:
-  - Flanco de subida: `sig_in = 1` y `sig_prev = 0`.
-  - Flanco de bajada: `sig_in = 0` y `sig_prev = 1`.
+- Análisis de CDC o sincronización entre dominios de reloj.
+- Comportamiento frente a metastabilidad en entradas asíncronas.
+- Validación a nivel gate, temporización post-síntesis o cierre STA.
+- Pruebas sobre variaciones de implementación física.
 
-## 4. Criterios de aceptación
+Se asume que `sig_in_i` está sincronizada al dominio de `clk_i`.
 
-1. Cada transición válida genera exactamente un pulso de un ciclo.
-2. No hay pulsos repetidos mientras `sig_in` permanece constante.
-3. `rise_pulse` y `fall_pulse` no deben activarse simultáneamente.
-4. Después de reset, `sig_prev` debe inicializarse en `0`.
-5. No se generan pulsos durante reset.
+## 4. Enfoque de verificación
 
-## 5. Casos de prueba (matriz)
+La estrategia de verificación será simulación RTL dirigida. El entorno de prueba deberá aplicar secuencias controladas sobre `sig_in_i` y comprobar el comportamiento de `rise_pulse_o` y `fall_pulse_o` ciclo por ciclo.
 
-### TC-01 — Rising Edge
+La verificación se apoyará en:
 
-- Secuencia `sig_in`: `0, 0, 1, 1, 1`
-- Resultado esperado:
-  - `rise_pulse = 1` en ciclo 2 (transición `0→1`)
-  - `rise_pulse = 0` en ciclos `0, 1, 3, 4`
-  - `fall_pulse = 0` en todos los ciclos
-- Cobertura objetivo: detección de flanco de subida + pulso único.
+- Casos dirigidos para flancos de subida y bajada.
+- Casos dirigidos para transiciones múltiples.
+- Casos dirigidos para entrada estable.
+- Casos dirigidos para reset e inicialización.
+- Checks funcionales para ancho de pulso, no re-disparo y exclusión mutua de salidas.
 
-### TC-02 — Falling Edge
+## 5. Cobertura funcional propuesta
 
-- Secuencia `sig_in`: `1, 1, 0, 0, 0`
-- Resultado esperado:
-  - `fall_pulse = 1` en ciclo 2 (transición `1→0`)
-  - `fall_pulse = 0` en ciclos `0, 1, 3, 4`
-  - `rise_pulse = 0` en todos los ciclos
-- Cobertura objetivo: detección de flanco de bajada + pulso único.
+La cobertura funcional mínima a alcanzar es la siguiente:
 
-### TC-03 — Multiple Edges
+- Cobertura de detección de flanco de subida.
+- Cobertura de detección de flanco de bajada.
+- Cobertura de pulsos de un solo ciclo.
+- Cobertura de ausencia de re-disparo con entrada estable en `0`.
+- Cobertura de ausencia de re-disparo con entrada estable en `1`.
+- Cobertura de inicialización post-reset.
+- Cobertura de alternancia entre flancos de subida y bajada.
+- Cobertura de exclusión mutua entre `rise_pulse_o` y `fall_pulse_o`.
 
-- Secuencia `sig_in`: `0, 1, 0, 1, 0`
-- Resultado esperado:
-  - `rise_pulse = 1` en ciclos `1, 3`
-  - `fall_pulse = 1` en ciclos `2, 4`
-  - Ambos pulsos en `0` en los demás ciclos
-- Cobertura objetivo: alternancia de flancos y no solapamiento de pulsos.
+## 6. Mapa de cobertura a requisitos
 
-### TC-04 — No Edges (Entrada estable por tramos)
+| Requisito | Intención de verificación |
+|-----------|----------------------------|
+| `rise_pulse = sig_in & ~sig_prev` | Confirmar detección correcta de transición `0→1` |
+| `fall_pulse = ~sig_in & sig_prev` | Confirmar detección correcta de transición `1→0` |
+| Single-cycle pulse per detection | Verificar que cada pulso tenga ancho de un ciclo |
+| No re-triggering while input holds steady | Verificar ausencia de pulsos repetidos en niveles estables |
+| Reset: `sig_prev = 0` | Verificar inicialización del estado previo al liberar reset |
 
-- Secuencia `sig_in`: `0` por 5 ciclos, luego `1` por 5 ciclos
-- Resultado esperado:
-  - Un solo `rise_pulse = 1` en el ciclo de transición `0→1`
-  - Sin pulsos repetidos durante los 5 ciclos en alto estable
-  - `fall_pulse = 0` en toda la secuencia
-- Cobertura objetivo: no re-disparo con entrada estable.
+## 7. Riesgos de verificación
 
-### TC-05 — Reset
+- El entorno actual de `verification/` parece provenir de otro diseño y debe alinearse al comportamiento real del `edge_detector`.
+- Si no se implementan checks ciclo por ciclo, es fácil aceptar falsos positivos en secuencias cortas.
+- El caso post-reset requiere una definición clara del instante exacto en que se espera el primer pulso para evitar ambigüedad entre reset y operación normal.
 
-- Estímulo:
-  - Afirmar reset con `sig_in = 1`
-  - Liberar reset manteniendo `sig_in = 1`
-- Resultado esperado:
-  - `sig_prev = 0` después de reset
-  - En el siguiente ciclo válido: `rise_pulse = 1` (detección `0→1` desde estado de reset)
-  - `fall_pulse = 0` durante este escenario
-- Cobertura objetivo: inicialización y primer flanco post-reset.
+## 8. Criterio de cierre
 
-## 6. Trazabilidad de restricciones
+La verificación se considerará cerrada cuando:
 
-- Pulso de un ciclo por detección:
-  - Cubierto por `TC-01`, `TC-02`, `TC-03`, `TC-04`.
-- Sin re-disparo con entrada estable:
-  - Cubierto por `TC-04`.
-- Reset con `sig_prev = 0`:
-  - Cubierto por `TC-05`.
+- Todos los requisitos funcionales del módulo tengan cobertura asociada.
+- Todos los casos definidos en el [test_plan.md](/Users/miguel/Documents/alemanmig/edge_detector/docs/test_plan.md:1) hayan sido ejecutados.
+- Todos los checks funcionales hayan pasado sin errores.
+- No existan pulsos de más de un ciclo.
+- No existan pulsos repetidos con entrada estable.
+- No exista activación simultánea de `rise_pulse_o` y `fall_pulse_o`.
 
-## 7. Métricas mínimas de cierre
+## 9. Entregables
 
-- 100% de casos de prueba ejecutados y aprobados (`5/5`).
-- 0 fallas en checks de ancho de pulso y no re-disparo.
-- 0 activaciones simultáneas de `rise_pulse` y `fall_pulse`.
-
-## 8. Entregables de verificación
-
-- Testbench con generación de reloj/reset y aplicación de secuencias.
-- Registro de resultados por ciclo para cada caso.
-- Reporte final con estado Pass/Fail por caso y resumen de cobertura funcional.
+- Testbench RTL alineado al DUT.
+- Casos de prueba definidos y ejecutables.
+- Registro de resultados por caso.
+- Evidencia de cobertura funcional.
+- Reporte final de cierre de verificación.
