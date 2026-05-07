@@ -8,11 +8,11 @@ package config_pkg;
   localparam int unsigned ClkFreq       = 100_000_000; // 100 MHz
   localparam int unsigned StableTime    = 1;           // 1 ms
 
-  int unsigned debounce_time = 120;         // Clock cycles
-  int unsigned iterations    = 50;        // Number of bounces
+ // int unsigned debounce_time = 120;         // Clock cycles
+ // int unsigned iterations    = 50;        // Number of bounces
 
 
-  function void get_config_args();
+/*  function void get_config_args();
     int unsigned cli_value;
 
     if ($value$plusargs("iterations=%d", cli_value)) begin
@@ -29,7 +29,8 @@ package config_pkg;
       $display("[INFO] %10t: debounce_time = %5d (DEFAULT)", $realtime, debounce_time);
     end
 
-  endfunction
+  endfunction */
+  
 
 endpackage : config_pkg
 

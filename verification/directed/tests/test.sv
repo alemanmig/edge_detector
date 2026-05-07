@@ -13,7 +13,7 @@ module test (
   initial begin
     // Initial values
     $display("Begin Of Simulation.");
-    get_config_args();
+//    get_config_args();
 
     // Apply reset
     reset();
@@ -33,9 +33,9 @@ module test (
   task automatic reset();
     vif.rst_ni = 1'b1;
     vif.sig_in_i  = 1'b0;
-    repeat (2) @(vif.cb);
-    vif.cb.rst_i <= 1'b0;
-    repeat (20) @(vif.cb);
+    @(posedge vif.clk_i);   // hold for at least 2 rising edges
+    @(posedge vif.clk_i);
+    vif.rst_ni = 1'b0;
   endtask : reset
 
 
