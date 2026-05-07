@@ -1,6 +1,6 @@
 # Guias pincipales
 
-[Guia Principal](https://www.uvmcollab.org/)
+[Guia Principal de consulta](https://www.uvmcollab.org/)
 
 ## Git configuration
 
