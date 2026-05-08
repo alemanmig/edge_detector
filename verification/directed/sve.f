@@ -5,6 +5,7 @@
 +incdir+sv
 sv/config_pkg.sv
 sv/vif_if.sv
+sv/edge_detector_cov.sv
 tests/test.sv
 sva/sva.sv
 tb/tb.sv
