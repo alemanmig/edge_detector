@@ -26,7 +26,7 @@ edge_detector
   .fall_pulse_o (vif.fall_pulse_o)
 );
 
-  bind edge_detector dut_sva dut_sva (
+  bind dut sva dut_sva (
     .clk_i        (clk_i),
     .rst_ni       (rst_ni),
     .sig_in_i     (sig_in_i),
@@ -34,7 +34,7 @@ edge_detector
     .fall_pulse_o (fall_pulse_o)
   );
 
-  edge_detector_cov u_edge_detector_cov (
+  bind dut edge_detector_cov dut_ed_cov(
     .clk_i        (vif.clk_i),
     .rst_ni       (vif.rst_ni),
     .sig_in_i     (vif.sig_in_i),
