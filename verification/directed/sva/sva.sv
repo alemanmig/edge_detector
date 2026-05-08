@@ -1,4 +1,4 @@
-module dut_sva (
+module sva (
     input logic clk_i,
     input logic rst_ni,
     input logic sig_in_i,
