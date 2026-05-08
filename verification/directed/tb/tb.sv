@@ -34,6 +34,14 @@ edge_detector
     .fall_pulse_o (fall_pulse_o)
   );
 
+  edge_detector_cov u_edge_detector_cov (
+    .clk_i        (vif.clk_i),
+    .rst_ni       (vif.rst_ni),
+    .sig_in_i     (vif.sig_in_i),
+    .rise_pulse_o (vif.rise_pulse_o),
+    .fall_pulse_o (vif.fall_pulse_o)
+  );
+
   initial begin
     $timeformat(-9, 1, "ns", 10);
   end
