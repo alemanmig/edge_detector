@@ -38,5 +38,20 @@ module test (
     vif.rst_ni = 1'b0;
   endtask : reset
 
+  //task para ver rising_edge
+  task automatic rising_edge();
+    sig_in_i = '0';
+    #30;
+    sig_in_i = '0';
+    #30;
+    sig_in_i = '1';
+    #30;
+    sig_in_i = '1';
+    #30;
+    sig_in_i = '1';
+    #30;
+  endtask : rising_edge
+
+
 
 endmodule : test

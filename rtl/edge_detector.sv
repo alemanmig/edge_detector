@@ -1,11 +1,7 @@
-// Licensed under the Apache License, Version 2.0, see LICENSE for details.
-// SPDX-License-Identifier: Apache-2.0
+// Detector de pulsos, un rising edge y un fall edge 
+// Genera un pulso cuando pasa de 0-1 (rise_pulse_o) y un pulso cuando pasa de 1-0 (fall_pulse_o)
 
-// Rising/Falling Edge Detector — single-cycle pulses
-//
-// Generates a one-clock-wide pulse on each 0→1 (rise_pulse_o) and
-// 1→0 (fall_pulse_o) transition of sig_in_i.
-//
+
 // Logic:
 //   rise_pulse_o =  sig_in_i & ~sig_prev_q
 //   fall_pulse_o = ~sig_in_i &  sig_prev_q

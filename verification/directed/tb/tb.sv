@@ -1,3 +1,5 @@
+`include "test.sv"
+
 module tb;
 
   timeunit      1ns;
