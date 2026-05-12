@@ -40,15 +40,15 @@ module test (
 
   //task para ver rising_edge
   task automatic rising_edge();
-    sig_in_i = '0';
+    vif.sig_in_i = 1'b0;
     #30;
-    sig_in_i = '0';
+    vif.sig_in_i = 1'b0;
     #30;
-    sig_in_i = '1';
+    vif.sig_in_i =1'b1;
     #30;
-    sig_in_i = '1';
+    vif.sig_in_i = 1'b0;
     #30;
-    sig_in_i = '1';
+    vif.sig_in_i = 1'b0;
     #30;
   endtask : rising_edge
 
