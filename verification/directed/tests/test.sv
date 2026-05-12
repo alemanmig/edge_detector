@@ -16,9 +16,10 @@ module test (
 //    get_config_args();
 
     // Apply reset
-    reset();
+    //reset();
     
-    rising_edge();
+    //rising_edge();
+    falling_edge();
     // Stimulus
 
 
@@ -52,6 +53,20 @@ module test (
     vif.sig_in_i = 1'b0;
     #30;
   endtask : rising_edge
+
+  task automatic falling_edge();
+    vif.sig_in_i = 1'b1;
+    #30;
+    vif.sig_in_i = 1'b1;
+    #30;
+    vif.sig_in_i =1'b0;
+    #30;
+    vif.sig_in_i = 1'b0;
+    #30;
+    vif.sig_in_i = 1'b0;
+    #30;
+  endtask : falling_edge
+
 
 
 
