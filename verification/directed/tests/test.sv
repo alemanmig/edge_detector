@@ -17,7 +17,8 @@ module test (
 
     // Apply reset
     reset();
-
+    
+    rising_edge();
     // Stimulus
 
 

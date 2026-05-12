@@ -30,7 +30,7 @@ edge_detector
 
   initial begin
     $timeformat(-9, 1, "ns", 10);
-    rising_edge();
+    //rising_edge();
   end
 
 endmodule : tb
