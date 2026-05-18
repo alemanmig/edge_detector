@@ -1,9 +1,11 @@
-#!/usr/bin/env bash
+#!usr/bin/env bash
 
-# ====================== IMPORTANT ======================= #
-# THIS IS AN EXAMPLE FILE, PLEASE REPLACE IT WITH YOUR OWN
-# SETUP SCRIPT WITH THE NAME setup_synopsys_eda.tcsh
-# AND INCLUDE THE TB ENVIRONMENT VARIABLES
+export SNPS_SCRIPTS=/home/jvergara/snps_scripts
+
+# Run the corresponding script for each tool
+for f in "$SNPS_SCRIPTS"/*.sh; do
+	source "$f"
+done
 
 # TB Environment Variables
 export GIT_ROOT="$(git rev-parse --show-toplevel)"

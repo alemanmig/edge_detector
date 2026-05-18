@@ -1,53 +1,43 @@
-module sva #(
-    parameter int ClkFreq    = 100_000_000,
-    parameter int StableTime = 10
-)(
-    // Interface signals
-    input logic clk_i,
-    input logic rst_i,
-    input logic sw_i,
-    input logic db_level_o,
-    input logic db_tick_o,
-    input logic ff1,
-    input logic ff2,
-    input logic ff3
+module sva (
+  input  logic clk_i,
+  input  logic rst_ni,    // Asynchronous active-low reset
+  input  logic sig_in_i,
+  input  logic rise_pulse_o,
+  input  logic fall_pulse_o
 );
 
-  localparam int CounterMax = ClkFreq * StableTime / 1_000_000;
-
-  property p1;
-    @(posedge clk_i) 
-    $rose(db_level_o) |-> (db_tick_o ##1 !db_tick_o);
+  property  TP01_Proper;
+    @(posedge clk_i)
+      disable iff(!rst_ni)
+        (($past(sig_in_i,4)===1'b0)      &&  ($past(sig_in_i,3)===1'b0)      &&  ($past(sig_in_i,2)===1'b1)      &&  ($past(sig_in_i)===1'b1)      &&  (sig_in_i===1'b1))     |->
+        (($past(rise_pulse_o,4)===1'b0)  &&  ($past(rise_pulse_o,3)===1'b0)  &&  ($past(rise_pulse_o,2)===1'b1)  &&  ($past(rise_pulse_o)===1'b0)  &&  (rise_pulse_o===1'b0));
   endproperty
 
-  property p2;
-    @(posedge clk_i) 
-    ((db_level_o && $past(db_level_o)) |-> !db_tick_o);
-  endproperty
+  //property  Rise_Proper;
+  //  @(posedge clk_i)
+  //   disable iff(!rst_ni)
+  //     (($past(sig_in_i)===1'b0)  &&  (sig_in_i===1'b1))  |-> rise_pulse_o;
+  //endproperty
 
-  property p3;
-    @(posedge clk_i) 
-    $rose(ff1) |-> (##1 ff2);
-    //$rose(ff1) |=> ff2;
-  endproperty
+  //property  Fall_Proper;
+  //  @(posedge clk_i)
+  //    disable iff(!rst_ni)
+  //      (($past(sig_in_i)===1'b1)  &&  (sig_in_i===1'b0)) |-> fall_pulse_o;
+  //endproperty
 
-  property p4;
-    @(posedge clk_i) disable iff (rst_i)
-    $rose(sw_i) ##0 sw_i[*CounterMax+2] |-> ##1 db_level_o;
-  endproperty
+  //Rise_Assert : assert  property(Rise_Proper)
+  //  $info("Rise Passed");
+  //else
+  //  $error("Rise not passed");
 
-  assert_p1: assert property (p1)
-    else $error("[SVA ERROR] %10t: db_tick_o is was not deasserted!", $realtime);
+  //Fall_Assert   : assert  property(Fall_Proper)
+  //  $info("Fall Passed");
+  //else
+  //  $error("Fall not passed");
 
-  assert_p2: assert property (p2)
-    else $error("[SVA ERROR] %10t: db_tick_o is asserted when it should not be!", $realtime);
-
-  assert_p3: assert property (p3)
-    else $error("[SVA ERROR] %10t: ff2 did not follow ff1 as expected!", $realtime);
-
-  assert_p4: assert property (p4)
-    else $error("[SVA ERROR] %10t: db_level_o did not activate as expected after sw_i was stable high!", $realtime);
-
-  cover_p1: cover property (p1);
+  TP01_Assert : assert  property(TP01_Proper)
+    $info("TP-01 Passed");
+  else
+    $error("TP-01 not passed");
 
 endmodule

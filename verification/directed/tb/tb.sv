@@ -17,8 +17,16 @@ module tb;
   test top_test (vif);
 
   // Instantiation
-edge_detector
-  dut (
+edge_detector dut (
+  .clk_i        (vif.clk_i),
+  .rst_ni       (vif.rst_ni),
+  .sig_in_i     (vif.sig_in_i),
+  .rise_pulse_o (vif.rise_pulse_o),
+  .fall_pulse_o (vif.fall_pulse_o)
+);
+
+bind dut sva
+dut_sva (
   .clk_i        (vif.clk_i),
   .rst_ni       (vif.rst_ni),
   .sig_in_i     (vif.sig_in_i),
