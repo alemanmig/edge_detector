@@ -17,12 +17,16 @@ module test (
 
     // Apply reset
     reset();
-
+    first();
+    reset();
+    sequence_two();
+    reset();
+    multiple_edges();
     // Stimulus
 
 
     // Drain time
-    #(100ns);
+    //#(100ns);
     $display("End Of Simulation.");
     $finish;
   end
@@ -31,12 +35,50 @@ module test (
   // ======================= TASKS ======================== //
 
   task automatic reset();
-    vif.rst_ni = 1'b1;
-    vif.sig_in_i  = 1'b0;
-    @(posedge vif.clk_i);   // hold for at least 2 rising edges
-    @(posedge vif.clk_i);
     vif.rst_ni = 1'b0;
+    vif.sig_in_i  = 1'b0;
+    @(posedge vif.clk_i);   // hold for at least one rising edge
+    vif.rst_ni = 1'b1;
   endtask : reset
+
+  task automatic first();
+    vif.sig_in_i = 1'b0;
+   @(posedge vif.clk_i);
+    vif.sig_in_i = 1'b0;
+   @(posedge vif.clk_i);
+    vif.sig_in_i = 1'b1;
+   @(posedge vif.clk_i);
+    vif.sig_in_i = 1'b1;
+   @(posedge vif.clk_i);
+    vif.sig_in_i = 1'b1;  // cambio para assertion
+   @(posedge vif.clk_i);
+  endtask
+
+  task automatic sequence_two();
+      vif.sig_in_i = 1'b1;
+   @(posedge vif.clk_i);
+    vif.sig_in_i = 1'b1;
+   @(posedge vif.clk_i);
+    vif.sig_in_i = 1'b0;
+   @(posedge vif.clk_i);
+    vif.sig_in_i = 1'b0;
+   @(posedge vif.clk_i);
+    vif.sig_in_i = 1'b0;  // cambio para assertion
+   @(posedge vif.clk_i);
+  endtask
+
+  task automatic multiple_edges();
+      vif.sig_in_i = 1'b0;
+   @(posedge vif.clk_i);
+    vif.sig_in_i = 1'b1;
+   @(posedge vif.clk_i);
+    vif.sig_in_i = 1'b0;
+   @(posedge vif.clk_i);
+    vif.sig_in_i = 1'b1;
+   @(posedge vif.clk_i);
+    vif.sig_in_i = 1'b0;  // cambio para assertion
+   @(posedge vif.clk_i);
+  endtask
 
 
 endmodule : test
