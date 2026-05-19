@@ -15,11 +15,13 @@ module sva #(
 
   localparam int CounterMax = ClkFreq * StableTime / 1_000_000;
 
-  property p1;
+  property rising_edge;
     @(posedge clk_i) 
-    $rose(db_level_o) |-> (db_tick_o ##1 !db_tick_o);
-  endproperty
+    // Detectar liberación de reset
+    ($rose(vif.rst_ni) && vif.sig_in_i) |=> (vif.rise_pulse_o == 1'b1 && vif.fall_pulse_o == 1'b0);
+endproperty
 
+/*
   property p2;
     @(posedge clk_i) 
     ((db_level_o && $past(db_level_o)) |-> !db_tick_o);
@@ -35,10 +37,10 @@ module sva #(
     @(posedge clk_i) disable iff (rst_i)
     $rose(sw_i) ##0 sw_i[*CounterMax+2] |-> ##1 db_level_o;
   endproperty
-
-  assert_p1: assert property (p1)
-    else $error("[SVA ERROR] %10t: db_tick_o is was not deasserted!", $realtime);
-
+*/
+  rising_edge_assert: assert property (rising_edge)
+    else $error("Error: detección incorrecta al liberar reset");
+/*
   assert_p2: assert property (p2)
     else $error("[SVA ERROR] %10t: db_tick_o is asserted when it should not be!", $realtime);
 
@@ -49,5 +51,5 @@ module sva #(
     else $error("[SVA ERROR] %10t: db_level_o did not activate as expected after sw_i was stable high!", $realtime);
 
   cover_p1: cover property (p1);
-
+*/
 endmodule

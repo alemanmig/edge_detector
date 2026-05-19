@@ -18,9 +18,13 @@ module test (
     // Apply reset
     //reset();
     
-    //rising_edge();
+    //set de tareas
+    //reset_prueba();
+    rising_edge();
     falling_edge();
-    // Stimulus
+    multiple_edges();
+    no_retrigger();
+    //Stimulus
 
 
     // Drain time
@@ -67,7 +71,35 @@ module test (
     #30;
   endtask : falling_edge
 
+  task automatic multiple_edges();
+    vif.sig_in_i = 1'b0;
+    #30;
+    vif.sig_in_i = 1'b1;
+    #30;
+    vif.sig_in_i =1'b0;
+    #30;
+    vif.sig_in_i = 1'b1;
+    #30;
+    vif.sig_in_i = 1'b0;
+    #30;
+  endtask : multiple_edges
 
+  task automatic no_retrigger();
+    vif.sig_in_i = 1'b0;
+    #50;
+    vif.sig_in_i = 1'b1;
+    #50;
+  endtask : no_retrigger
 
+  task automatic reset_prueba();
+    vif.rst_ni = 1'b1;
+    vif.sig_in_i = 1'b1;
+    @(posedge vif.clk_i);
+
+    vif.rst_ni = 1'b0; //activo reset
+    @(posedge vif.clk_i);
+
+    vif.rst_ni = 1'b1; //desactivo reset
+  endtask : reset_prueba
 
 endmodule : test
